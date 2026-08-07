@@ -97,7 +97,7 @@ if uploaded_file:
         use_container_width=True,
     )
 
-    with st.spinner("Reading text from label image..."):
+ with st.spinner("Reading text from label image..."):
     try:
         # Convert to RGB for consistent OCR processing
         ocr_image = label_image.convert("RGB")
@@ -106,7 +106,7 @@ if uploaded_file:
         max_dimension = 1600
         width, height = ocr_image.size
 
-        if max(width, height) > max_dimension:
+ if max(width, height) > max_dimension:
             scale = max_dimension / max(width, height)
             new_size = (
                 int(width * scale),
