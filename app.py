@@ -2,7 +2,7 @@ import re
 from difflib import SequenceMatcher
 
 import streamlit as st
-from PIL import Image
+from PIL import Image, ImageOps, ImageEnhance
 import pytesseract
 import numpy as np
 
@@ -135,7 +135,24 @@ with st.spinner("Reading text from label image..."):
                     ocr_image = ocr_image.resize(new_size)
 
 
-                ocr_text = pytesseract.image_to_string(ocr_image)
+                # Improve contrast and clarity for OCR
+processed_image = ImageOps.grayscale(ocr_image)
+processed_image = ImageOps.autocontrast(processed_image)
+processed_image = ImageEnhance.Sharpness(processed_image).enhance(2.0)
+
+# Try two Tesseract layouts so we can detect both
+# structured label text and scattered text
+text_block = pytesseract.image_to_string(
+    processed_image,
+    config="--psm 6"
+)
+
+text_sparse = pytesseract.image_to_string(
+    processed_image,
+    config="--psm 11"
+)
+
+                ocr_text = text_block + "\n" + text_sparse
 
                 if not ocr_text.strip():
                     st.warning(
