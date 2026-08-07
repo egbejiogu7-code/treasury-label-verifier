@@ -4,8 +4,11 @@ from difflib import SequenceMatcher
 import streamlit as st
 from PIL import Image, ImageOps, ImageEnhance
 import pytesseract
-import numpy as np
 
+
+# ---------------------------------------------------------
+# CONSTANTS
+# ---------------------------------------------------------
 
 STANDARD_WARNING = (
     "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not "
@@ -15,15 +18,26 @@ STANDARD_WARNING = (
 )
 
 
+# ---------------------------------------------------------
+# HELPER FUNCTIONS
+# ---------------------------------------------------------
+
 def normalize_text(value: str) -> str:
-    """Normalize text for comparisons that should ignore capitalization and spacing."""
+    """
+    Normalize text for comparisons while ignoring capitalization,
+    repeated spaces, and most punctuation.
+    """
     value = value or ""
     value = value.upper()
     value = re.sub(r"[^A-Z0-9%.'/-]+", " ", value)
+
     return " ".join(value.split())
 
 
 def similarity(left: str, right: str) -> float:
+    """
+    Return a similarity score between two normalized strings.
+    """
     return SequenceMatcher(
         None,
         normalize_text(left),
@@ -32,11 +46,20 @@ def similarity(left: str, right: str) -> float:
 
 
 def extract_abv(text: str) -> str | None:
-    """Extract ABV percentage, with proof as a fallback."""
+    """
+    Extract alcohol-by-volume percentage from OCR text.
+
+    Examples:
+        45%
+        45.0%
+        45 % Alc./Vol.
+
+    If ABV is not found, proof is used as a fallback:
+        90 Proof -> 45% ABV
+    """
     text = text or ""
 
-    # First look for an explicit ABV percentage such as
-    # 45%, 45.0%, 45 % ALC./VOL.
+    # Look for explicit percentage first.
     match = re.search(
         r"(\d{1,3}(?:\.\d+)?)\s*(?:%|PERCENT)",
         text,
@@ -46,8 +69,7 @@ def extract_abv(text: str) -> str | None:
     if match:
         return match.group(1)
 
-    # Fallback: US proof is approximately 2 x ABV.
-    # Example: 90 PROOF = 45% ABV.
+    # Fallback: U.S. proof is approximately 2 x ABV.
     proof_match = re.search(
         r"(\d{1,3}(?:\.\d+)?)\s*PROOF",
         text,
@@ -65,6 +87,10 @@ def status_icon(passed: bool) -> str:
     return "✅" if passed else "❌"
 
 
+# ---------------------------------------------------------
+# PAGE CONFIGURATION
+# ---------------------------------------------------------
+
 st.set_page_config(
     page_title="TTB Label Verification",
     page_icon="🔎",
@@ -72,9 +98,15 @@ st.set_page_config(
 )
 
 st.title("AI-Powered Alcohol Label Verification")
+
 st.caption(
     "Prototype for comparing alcohol-label artwork with application information."
 )
+
+
+# ---------------------------------------------------------
+# APPLICATION INFORMATION + LABEL UPLOAD
+# ---------------------------------------------------------
 
 left, right = st.columns(2)
 
@@ -100,6 +132,7 @@ with left:
         height=180,
     )
 
+
 with right:
     st.subheader("2. Label artwork")
 
@@ -107,66 +140,94 @@ with right:
         "Upload a label image",
         type=["png", "jpg", "jpeg"],
     )
-    ocr_text = ""
-if uploaded_file:
-    label_image = Image.open(uploaded_file).convert("RGB")
-
-    st.image(
-        label_image,
-        caption=uploaded_file.name,
-        use_container_width=True,
-    )
-
-with st.spinner("Reading text from label image..."):
-            try:
-                # Convert to RGB for consistent OCR processing
-                ocr_image = label_image.convert("RGB")
-
-                # Resize large phone/camera images to reduce memory usage
-                max_dimension = 1600
-                width, height = ocr_image.size
-
-                if max(width, height) > max_dimension:
-                    scale = max_dimension / max(width, height)
-                    new_size = (
-                        int(width * scale),
-                        int(height * scale),
-                    )
-                    ocr_image = ocr_image.resize(new_size)
 
 
-                # Improve contrast and clarity for OCR
-                    processed_image = ImageOps.grayscale(ocr_image)
-                    processed_image = ImageOps.autocontrast(processed_image)
-                    processed_image = ImageEnhance.Sharpness(processed_image).enhance(2.0)
+# ---------------------------------------------------------
+# OCR PROCESSING
+# ---------------------------------------------------------
 
-                # Try two Tesseract layouts so we can detect both
-                # structured label text and scattered text
-                    text_block = pytesseract.image_to_string(
-                        processed_image,
-                        config="--psm 6"
-)
+ocr_text = ""
 
-                    text_sparse = pytesseract.image_to_string(
-                        processed_image,
-                        config="--psm 11"
-)
+if uploaded_file is not None:
 
-                    ocr_text = text_block + "\n" + text_sparse
+    try:
+        label_image = Image.open(uploaded_file).convert("RGB")
 
-               if not ocr_text.strip():
-            st.warning(
-                "No readable text was detected. "
-                "Please upload a clearer, closer image of the label."
+        st.image(
+            label_image,
+            caption=uploaded_file.name,
+            use_container_width=True,
+        )
+
+        with st.spinner("Reading text from label image..."):
+
+            # Work from a copy of the uploaded image.
+            ocr_image = label_image.copy()
+
+            # Reduce very large camera images.
+            max_dimension = 1600
+            width, height = ocr_image.size
+
+            if max(width, height) > max_dimension:
+
+                scale = max_dimension / max(width, height)
+
+                new_size = (
+                    int(width * scale),
+                    int(height * scale),
+                )
+
+                ocr_image = ocr_image.resize(new_size)
+
+            # Improve OCR readability.
+            processed_image = ImageOps.grayscale(ocr_image)
+
+            processed_image = ImageOps.autocontrast(
+                processed_image
             )
 
-    except Exception as e:
-        st.error(f"OCR ERROR: {type(e).__name__}: {e}")
-        ocr_text = ""
-     
+            processed_image = ImageEnhance.Sharpness(
+                processed_image
+            ).enhance(2.0)
 
+            # OCR layout 6:
+            # works well for structured blocks of text.
+            text_block = pytesseract.image_to_string(
+                processed_image,
+                config="--psm 6",
+            )
+
+            # OCR layout 11:
+            # works well for scattered text on artwork.
+            text_sparse = pytesseract.image_to_string(
+                processed_image,
+                config="--psm 11",
+            )
+
+            # Combine both OCR attempts.
+            ocr_text = f"{text_block}\n{text_sparse}".strip()
+
+            if not ocr_text:
+                st.warning(
+                    "No readable text was detected. "
+                    "Please upload a clearer, closer image of the label."
+                )
+
+    except Exception as e:
+
+        st.error(
+            f"OCR ERROR: {type(e).__name__}: {e}"
+        )
+
+        ocr_text = ""
+
+
+# ---------------------------------------------------------
+# TEXT DETECTED FROM LABEL
+# ---------------------------------------------------------
 
 st.divider()
+
 st.subheader("3. Text detected from label")
 
 st.info(
@@ -174,10 +235,20 @@ st.info(
     "You can correct the extracted text before running verification."
 )
 
-st.write("OCR DEBUG:", repr(ocr_text))
 
+# Initialize Streamlit session state only once.
+if "label_text" not in st.session_state:
+    st.session_state["label_text"] = ""
+
+
+# Update the text box when a new OCR result exists.
 if ocr_text.strip():
-    st.session_state["label_text"] = ocr_text
+
+    # Only replace the box if OCR content differs.
+    # This prevents Streamlit from constantly overwriting manual corrections.
+    if st.session_state["label_text"] != ocr_text:
+        st.session_state["label_text"] = ocr_text
+
 
 detected_text = st.text_area(
     "Label text",
@@ -186,26 +257,79 @@ detected_text = st.text_area(
 )
 
 
+# ---------------------------------------------------------
+# VERIFICATION
+# ---------------------------------------------------------
 
-if st.button("Verify label", type="primary", use_container_width=True):
+if st.button(
+    "Verify label",
+    type="primary",
+    use_container_width=True,
+):
+
     if not expected_brand.strip():
-        st.error("Enter the brand name from the application.")
+
+        st.error(
+            "Enter the brand name from the application."
+        )
+
     elif not detected_text.strip():
-        st.error("Enter or extract the text from the label.")
+
+        st.error(
+            "Enter or extract the text from the label."
+        )
+
     else:
-        brand_normalized = normalize_text(expected_brand)
-        label_normalized = normalize_text(detected_text)
-        
+
+        # -------------------------------------------------
+        # BRAND CHECK
+        # -------------------------------------------------
+
+        brand_normalized = normalize_text(
+            expected_brand
+        )
+
+        label_normalized = normalize_text(
+            detected_text
+        )
+
         brand_words = brand_normalized.split()
-        brand_matches = sum(word in label_normalized for word in brand_words)
-        
-        brand_score = brand_matches / len(brand_words) if brand_words else 0
-        brand_passed = brand_score >= 0.67  
-        detected_abv = extract_abv(detected_text)
+
+        brand_matches = sum(
+            word in label_normalized
+            for word in brand_words
+        )
+
+        brand_score = (
+            brand_matches / len(brand_words)
+            if brand_words
+            else 0
+        )
+
+        brand_passed = brand_score >= 0.67
+
+
+        # -------------------------------------------------
+        # ABV CHECK
+        # -------------------------------------------------
+
+        detected_abv = extract_abv(
+            detected_text
+        )
+
         abv_passed = (
             detected_abv is not None
-            and abs(float(detected_abv) - float(expected_abv)) < 0.01
+            and abs(
+                float(detected_abv)
+                - float(expected_abv)
+            )
+            < 0.01
         )
+
+
+        # -------------------------------------------------
+        # GOVERNMENT WARNING CHECK
+        # -------------------------------------------------
 
         warning_keywords = [
             "government warning",
@@ -217,63 +341,107 @@ if st.button("Verify label", type="primary", use_container_width=True):
         ]
 
         warning_matches = sum(
-            normalize_text(keyword) in label_normalized
+            normalize_text(keyword)
+            in label_normalized
             for keyword in warning_keywords
         )
 
         warning_passed = warning_matches >= 4
-            
-        st.subheader("Verification results")
-            
+
+
+        # -------------------------------------------------
+        # RESULTS
+        # -------------------------------------------------
+
+        st.subheader(
+            "Verification results"
+        )
+
         result_rows = [
-                {
-                    "Check": "Brand name",
-                    "Result": f"{status_icon(brand_passed)} "
-                    f"{'Match' if brand_passed else 'Review required'}",
-                    "Details": (
-                        f"Similarity score: {brand_score:.0%}. "
-                        "Capitalization differences are allowed."
-                    ),
-                },
-                {
-                    "Check": "Alcohol content",
-                    "Result": f"{status_icon(abv_passed)} "
-                    f"{'Match' if abv_passed else 'Mismatch'}",
-                    "Details": (
-                        f"Application: {expected_abv:g}% | "
-                        f"Label: {detected_abv + '%' if detected_abv else 'Not found'}"
-                    ),
-                },
-                {
-                    "Check": "Government warning",
-                    "Result": f"{status_icon(warning_passed)} "
-                    f"{'Required warning detected' if warning_passed else 'Missing or altered'}",
-                    "Details": (
-                        f"Detected {warning_matches} of {len(warning_keywords)} required warning indicators."
-                    ),
-                },
-            ]
-            
+            {
+                "Check": "Brand name",
+                "Result": (
+                    f"{status_icon(brand_passed)} "
+                    f"{'Match' if brand_passed else 'Review required'}"
+                ),
+                "Details": (
+                    f"Similarity score: {brand_score:.0%}. "
+                    "Capitalization differences are allowed."
+                ),
+            },
+            {
+                "Check": "Alcohol content",
+                "Result": (
+                    f"{status_icon(abv_passed)} "
+                    f"{'Match' if abv_passed else 'Mismatch'}"
+                ),
+                "Details": (
+                    f"Application: {expected_abv:g}% | "
+                    f"Label: "
+                    f"{detected_abv + '%' if detected_abv else 'Not found'}"
+                ),
+            },
+            {
+                "Check": "Government warning",
+                "Result": (
+                    f"{status_icon(warning_passed)} "
+                    f"{'Required warning detected' if warning_passed else 'Missing or altered'}"
+                ),
+                "Details": (
+                    f"Detected {warning_matches} of "
+                    f"{len(warning_keywords)} warning indicators."
+                ),
+            },
+        ]
+
         st.table(result_rows)
-            
-        all_passed = brand_passed and abv_passed and warning_passed
-            
+
+
+        # -------------------------------------------------
+        # FINAL RESULT
+        # -------------------------------------------------
+
+        all_passed = (
+            brand_passed
+            and abv_passed
+            and warning_passed
+        )
+
         if all_passed:
-            st.success("Label passed all automated checks.")
+
+            st.success(
+                "Label passed all automated checks."
+            )
+
         else:
+
             st.warning(
                 "One or more checks require review by a compliance agent."
             )
-            
-            with st.expander("Detected label details"):
-                st.write(
-                    {
-                        "Detected ABV": detected_abv,
-                        "Brand similarity": round(brand_score, 3),
-                        "Government warning found": warning_passed,
-                    }
-                )
-            
-            st.caption(
-            "Prototype only. Final compliance decisions remain with authorized TTB personnel."
+
+
+        # -------------------------------------------------
+        # DETAILS
+        # -------------------------------------------------
+
+        with st.expander(
+            "Detected label details"
+        ):
+
+            st.write(
+                {
+                    "Detected ABV": detected_abv,
+                    "Brand similarity": round(
+                        brand_score,
+                        3,
+                    ),
+                    "Government warning found": warning_passed,
+                    "Warning indicators detected": warning_matches,
+                }
             )
+
+
+        st.caption(
+            "Prototype only. Final compliance decisions remain "
+            "with authorized TTB personnel."
+        )
