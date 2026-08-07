@@ -191,24 +191,24 @@ detected_text = st.text_area(
 )
 
 if st.button("Verify label", type="primary", use_container_width=True):
-    if not expected_brand.strip():
-        st.error("Enter the brand name from the application.")
-    elif not detected_text.strip():
-        st.error("Enter or extract the text from the label.")
-    else:
-        brand_normalized = normalize_text(expected_brand)
-        label_normalized = normalize_text(detected_text)
+if not expected_brand.strip():
+    st.error("Enter the brand name from the application.")
+elif not detected_text.strip():
+    st.error("Enter or extract the text from the label.")
+else:
+    brand_normalized = normalize_text(expected_brand)
+    label_normalized = normalize_text(detected_text)
 
-        brand_words = brand_normalized.split()
-        brand_matches = sum(word in label_normalized for word in brand_words)
+    brand_words = brand_normalized.split()
+    brand_matches = sum(word in label_normalized for word in brand_words)
 
-        brand_score = brand_matches / len(brand_words) if brand_words else 0
-        brand_passed = brand_score >= 0.67  
+    brand_score = brand_matches / len(brand_words) if brand_words else 0
+    brand_passed = brand_score >= 0.67  
 
-         detected_abv = extract_abv(detected_text)
-        abv_passed = (
-            detected_abv is not None
-            and abs(float(detected_abv) - float(expected_abv)) < 0.01
+     detected_abv = extract_abv(detected_text)
+    abv_passed = (
+        detected_abv is not None
+        and abs(float(detected_abv) - float(expected_abv)) < 0.01
         )
 
         warning_keywords = [
