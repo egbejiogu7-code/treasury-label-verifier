@@ -260,7 +260,7 @@ if st.button("Verify label", type="primary", use_container_width=True):
         
     st.table(result_rows)
         
-        all_passed = brand_passed and abv_passed and warning_passed
+    all_passed = brand_passed and abv_passed and warning_passed
         
         if all_passed:
         st.success("Label passed all automated checks.")
