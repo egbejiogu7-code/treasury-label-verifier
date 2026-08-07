@@ -136,9 +136,9 @@ with st.spinner("Reading text from label image..."):
 
 
                 # Improve contrast and clarity for OCR
-processed_image = ImageOps.grayscale(ocr_image)
-processed_image = ImageOps.autocontrast(processed_image)
-processed_image = ImageEnhance.Sharpness(processed_image).enhance(2.0)
+                    processed_image = ImageOps.grayscale(ocr_image)
+                    processed_image = ImageOps.autocontrast(processed_image)
+                    processed_image = ImageEnhance.Sharpness(processed_image).enhance(2.0)
 
 # Try two Tesseract layouts so we can detect both
 # structured label text and scattered text
