@@ -160,12 +160,9 @@ with st.spinner("Reading text from label image..."):
                         "Please upload a clearer, closer image of the label."
                     )
 
-            except Exception:
-                st.error(
-                    "The label could not be processed. "
-                    "Please upload a clearer or smaller image and try again."
-                )
-                ocr_text = ""
+            except Exception as e:
+    st.error(f"OCR ERROR: {type(e).__name__}: {e}")
+    ocr_text = ""
      
 
 
