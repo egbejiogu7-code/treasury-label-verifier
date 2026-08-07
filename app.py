@@ -181,13 +181,6 @@ detected_text = st.text_area(
     "Label text",
     value=ocr_text,
     height=220,
-    placeholder=(
-        "OLD TOM DISTILLERY\n"
-        "Kentucky Straight Bourbon Whiskey\n"
-        "45% Alc./Vol. (90 Proof)\n"
-        "750 mL\n"
-        "GOVERNMENT WARNING: ..."
-    ),
 )
 
 if st.button("Verify label", type="primary", use_container_width=True):
