@@ -32,9 +32,33 @@ def similarity(left: str, right: str) -> float:
 
 
 def extract_abv(text: str) -> str | None:
-    """Find an alcohol percentage such as 45%, 45 % Alc./Vol., or 12.5%."""
-    match = re.search(r"\b(\d{1,2}(?:\.\d+)?)\s*%", text or "")
-    return match.group(1) if match else None
+    """Extract ABV percentage, with proof as a fallback."""
+    text = text or ""
+
+    # First look for an explicit ABV percentage such as
+    # 45%, 45.0%, 45 % ALC./VOL.
+    match = re.search(
+        r"(\d{1,3}(?:\.\d+)?)\s*(?:%|PERCENT)",
+        text,
+        re.IGNORECASE,
+    )
+
+    if match:
+        return match.group(1)
+
+    # Fallback: US proof is approximately 2 x ABV.
+    # Example: 90 PROOF = 45% ABV.
+    proof_match = re.search(
+        r"(\d{1,3}(?:\.\d+)?)\s*PROOF",
+        text,
+        re.IGNORECASE,
+    )
+
+    if proof_match:
+        proof = float(proof_match.group(1))
+        return str(proof / 2)
+
+    return None
 
 
 def status_icon(passed: bool) -> str:
