@@ -220,64 +220,64 @@ if st.button("Verify label", type="primary", use_container_width=True):
             "health problems",
         ]
 
-        warning_matches = sum(
-            normalize_text(keyword) in label_normalized
-            for keyword in warning_keywords
-        )
+    warning_matches = sum(
+        normalize_text(keyword) in label_normalized
+        for keyword in warning_keywords
+    )
 
-        warning_passed = warning_matches >= 4
+    warning_passed = warning_matches >= 4
 
-        st.subheader("Verification results")
+    st.subheader("Verification results")
 
-result_rows = [
-            {
-                "Check": "Brand name",
-                "Result": f"{status_icon(brand_passed)} "
-                f"{'Match' if brand_passed else 'Review required'}",
-                "Details": (
-                    f"Similarity score: {brand_score:.0%}. "
-                    "Capitalization differences are allowed."
-                ),
-            },
-            {
-                "Check": "Alcohol content",
-                "Result": f"{status_icon(abv_passed)} "
-                f"{'Match' if abv_passed else 'Mismatch'}",
-                "Details": (
-                    f"Application: {expected_abv:g}% | "
-                    f"Label: {detected_abv + '%' if detected_abv else 'Not found'}"
-                ),
-            },
-            {
-                "Check": "Government warning",
-                "Result": f"{status_icon(warning_passed)} "
-                f"{'Required warning detected' if warning_passed else 'Missing or altered'}",
-                "Details": (
-                    f"Detected {warning_matches} of {len(warning_keywords)} required warning indicators."
-                ),
-            },
-        ]
+    result_rows = [
+        {
+            "Check": "Brand name",
+            "Result": f"{status_icon(brand_passed)} "
+            f"{'Match' if brand_passed else 'Review required'}",
+            "Details": (
+                f"Similarity score: {brand_score:.0%}. "
+                "Capitalization differences are allowed."
+            ),
+        },
+        {
+            "Check": "Alcohol content",
+            "Result": f"{status_icon(abv_passed)} "
+            f"{'Match' if abv_passed else 'Mismatch'}",
+            "Details": (
+                f"Application: {expected_abv:g}% | "
+                f"Label: {detected_abv + '%' if detected_abv else 'Not found'}"
+            ),
+        },
+        {
+            "Check": "Government warning",
+            "Result": f"{status_icon(warning_passed)} "
+            f"{'Required warning detected' if warning_passed else 'Missing or altered'}",
+            "Details": (
+                f"Detected {warning_matches} of {len(warning_keywords)} required warning indicators."
+            ),
+        },
+    ]
 
 st.table(result_rows)
 
 all_passed = brand_passed and abv_passed and warning_passed
 
 if all_passed:
-    st.success("Label passed all automated checks.")
+st.success("Label passed all automated checks.")
 else:
-    st.warning(
-        "One or more checks require review by a compliance agent."
-            )
+st.warning(
+    "One or more checks require review by a compliance agent."
+        )
 
-    with st.expander("Detected label details"):
-            st.write(
-                {
-                    "Detected ABV": detected_abv,
-                    "Brand similarity": round(brand_score, 3),
-                    "Government warning found": warning_passed,
-                }
-            )
+with st.expander("Detected label details"):
+        st.write(
+            {
+                "Detected ABV": detected_abv,
+                "Brand similarity": round(brand_score, 3),
+                "Government warning found": warning_passed,
+            }
+        )
 
 st.caption(
-    "Prototype only. Final compliance decisions remain with authorized TTB personnel."
+"Prototype only. Final compliance decisions remain with authorized TTB personnel."
 )
