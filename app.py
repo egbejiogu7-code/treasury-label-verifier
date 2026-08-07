@@ -222,8 +222,7 @@ warning_matches = sum(
             normalize_text(keyword) in label_normalized
             for keyword in warning_keywords
         )
-
-   warning_passed = warning_matches >= 4
+warning_passed = warning_matches >= 4
 
     st.subheader("Verification results")
 
