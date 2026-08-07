@@ -97,45 +97,47 @@ if uploaded_file:
         use_container_width=True,
     )
 
- with st.spinner("Reading text from label image..."):
-    try:
-        # Convert to RGB for consistent OCR processing
-        ocr_image = label_image.convert("RGB")
+with st.spinner("Reading text from label image..."):
+            try:
+                # Convert to RGB for consistent OCR processing
+                ocr_image = label_image.convert("RGB")
 
-        # Resize large phone/camera images to reduce memory usage
-        max_dimension = 1600
-        width, height = ocr_image.size
+                # Resize large phone/camera images to reduce memory usage
+                max_dimension = 1600
+                width, height = ocr_image.size
 
- if max(width, height) > max_dimension:
-            scale = max_dimension / max(width, height)
-            new_size = (
-                int(width * scale),
-                int(height * scale),
-            )
-            ocr_image = ocr_image.resize(new_size)
+                if max(width, height) > max_dimension:
+                    scale = max_dimension / max(width, height)
+                    new_size = (
+                        int(width * scale),
+                        int(height * scale),
+                    )
+                    ocr_image = ocr_image.resize(new_size)
 
-        reader = get_ocr_reader()
+                reader = get_ocr_reader()
 
-        results = reader.readtext(
-            np.array(ocr_image),
-            detail=0,
-            paragraph=True,
-        )
+                results = reader.readtext(
+                    np.array(ocr_image),
+                    detail=0,
+                    paragraph=True,
+                )
 
-        ocr_text = "\n".join(results)
+                ocr_text = "\n".join(results)
 
-        if not ocr_text.strip():
-            st.warning(
-                "No readable text was detected. "
-                "Please upload a clearer, closer image of the label."
-            )
+                if not ocr_text.strip():
+                    st.warning(
+                        "No readable text was detected. "
+                        "Please upload a clearer, closer image of the label."
+                    )
 
-    except Exception as exc:
-        st.error(
-            "The label could not be processed. "
-            "Please upload a clearer or smaller image and try again."
-        )
-        ocr_text = ""
+            except Exception:
+                st.error(
+                    "The label could not be processed. "
+                    "Please upload a clearer or smaller image and try again."
+                )
+                ocr_text = ""
+     
+
 
 st.divider()
 
