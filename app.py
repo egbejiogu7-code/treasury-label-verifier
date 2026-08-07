@@ -205,7 +205,7 @@ if st.button("Verify label", type="primary", use_container_width=True):
         brand_score = brand_matches / len(brand_words) if brand_words else 0
         brand_passed = brand_score >= 0.67  
         
-         detected_abv = extract_abv(detected_text)
+        detected_abv = extract_abv(detected_text)
         abv_passed = (
             detected_abv is not None
             and abs(float(detected_abv) - float(expected_abv)) < 0.01
