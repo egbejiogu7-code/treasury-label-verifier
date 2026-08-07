@@ -154,14 +154,15 @@ with st.spinner("Reading text from label image..."):
 
                     ocr_text = text_block + "\n" + text_sparse
 
-                if not ocr_text.strip():
-                    st.warning(
-                        "No readable text was detected. "
-                        "Please upload a clearer, closer image of the label."
-                    )
-        except Exception as e:
-                    st.error(f"OCR ERROR: {type(e).__name__}: {e}")
-                    ocr_text = ""
+               if not ocr_text.strip():
+            st.warning(
+                "No readable text was detected. "
+                "Please upload a clearer, closer image of the label."
+            )
+
+    except Exception as e:
+        st.error(f"OCR ERROR: {type(e).__name__}: {e}")
+        ocr_text = ""
      
 
 
