@@ -265,7 +265,7 @@ if st.button("Verify label", type="primary", use_container_width=True):
     if all_passed:
         st.success("Label passed all automated checks.")
     else:
-    st.warning(
+        st.warning(
             "One or more checks require review by a compliance agent."
         )
         
