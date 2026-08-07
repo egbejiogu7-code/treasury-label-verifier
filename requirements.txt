@@ -1,4 +1,4 @@
 streamlit
 pillow
-easyocr
+pytesseract
 numpy
