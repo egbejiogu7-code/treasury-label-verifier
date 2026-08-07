@@ -142,14 +142,14 @@ with st.spinner("Reading text from label image..."):
 
 # Try two Tesseract layouts so we can detect both
 # structured label text and scattered text
-text_block = pytesseract.image_to_string(
-    processed_image,
-    config="--psm 6"
+                    text_block = pytesseract.image_to_string(
+                        processed_image,
+                        config="--psm 6"
 )
 
-text_sparse = pytesseract.image_to_string(
-    processed_image,
-    config="--psm 11"
+                    text_sparse = pytesseract.image_to_string(
+                        processed_image,
+                        config="--psm 11"
 )
 
                 ocr_text = text_block + "\n" + text_sparse
