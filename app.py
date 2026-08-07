@@ -220,7 +220,7 @@ if st.button("Verify label", type="primary", use_container_width=True):
             "health problems",
         ]
         
-    warning_matches = sum(
+   warning_matches = sum(
             normalize_text(keyword) in label_normalized
             for keyword in warning_keywords
         )
