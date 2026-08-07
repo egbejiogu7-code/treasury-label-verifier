@@ -3,12 +3,8 @@ from difflib import SequenceMatcher
 
 import streamlit as st
 from PIL import Image
-import easyocr
+import pytesseract
 import numpy as np
-
-@st.cache_resource
-def get_ocr_reader():
-    return easyocr.Reader(["en"], gpu=False)
 
 
 STANDARD_WARNING = (
@@ -114,15 +110,8 @@ with st.spinner("Reading text from label image..."):
                     )
                     ocr_image = ocr_image.resize(new_size)
 
-                reader = get_ocr_reader()
 
-                results = reader.readtext(
-                    np.array(ocr_image),
-                    detail=0,
-                    paragraph=True,
-                )
-
-                ocr_text = "\n".join(results)
+                ocr_text = pytesseract.image_to_string(ocr_image)
 
                 if not ocr_text.strip():
                     st.warning(
