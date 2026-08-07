@@ -259,11 +259,11 @@ st.table(result_rows)
 
 all_passed = brand_passed and abv_passed and warning_passed
 
-    if all_passed:
-            st.success("Label passed all automated checks.")
+if all_passed:
+st.success("Label passed all automated checks.")
     else:
-            st.warning(
-                "One or more checks require review by a compliance agent."
+st.warning(
+  "One or more checks require review by a compliance agent."
             )
 
     with st.expander("Detected label details"):
