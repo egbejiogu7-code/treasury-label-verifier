@@ -227,9 +227,9 @@ if st.button("Verify label", type="primary", use_container_width=True):
     
     warning_passed = warning_matches >= 4
         
-        st.subheader("Verification results")
+    st.subheader("Verification results")
         
-        result_rows = [
+    result_rows = [
             {
                 "Check": "Brand name",
                 "Result": f"{status_icon(brand_passed)} "
