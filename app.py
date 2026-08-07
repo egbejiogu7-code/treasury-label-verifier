@@ -166,18 +166,25 @@ with st.spinner("Reading text from label image..."):
 
 
 st.divider()
-
 st.subheader("3. Text detected from label")
+
 st.info(
     "Upload a label image above. The app will extract the visible text automatically. "
-"You can correct the extracted text before running verification."
+    "You can correct the extracted text before running verification."
 )
+
+st.write("OCR DEBUG:", repr(ocr_text))
+
+if ocr_text.strip():
+    st.session_state["label_text"] = ocr_text
 
 detected_text = st.text_area(
     "Label text",
-    value=ocr_text,
+    key="label_text",
     height=220,
 )
+
+
 
 if st.button("Verify label", type="primary", use_container_width=True):
     if not expected_brand.strip():
