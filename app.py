@@ -211,14 +211,14 @@ if st.button("Verify label", type="primary", use_container_width=True):
         and abs(float(detected_abv) - float(expected_abv)) < 0.01
         )
     
-        warning_keywords = [
-            "government warning",
-            "surgeon general",
-            "pregnancy",
-            "birth defects",
-            "operate machinery",
-            "health problems",
-        ]
+    warning_keywords = [
+        "government warning",
+        "surgeon general",
+        "pregnancy",
+        "birth defects",
+        "operate machinery",
+        "health problems",
+    ]
     
     warning_matches = sum(
         normalize_text(keyword) in label_normalized
