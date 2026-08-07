@@ -224,7 +224,7 @@ warning_matches = sum(
         )
 warning_passed = warning_matches >= 4
 
-    st.subheader("Verification results")
+st.subheader("Verification results")
 
     result_rows = [
             {
