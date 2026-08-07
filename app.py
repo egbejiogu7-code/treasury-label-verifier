@@ -258,7 +258,7 @@ if st.button("Verify label", type="primary", use_container_width=True):
             },
         ]
         
-        st.table(result_rows)
+    st.table(result_rows)
         
         all_passed = brand_passed and abv_passed and warning_passed
         
