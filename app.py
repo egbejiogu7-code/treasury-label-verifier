@@ -218,8 +218,7 @@ warning_keywords = [
             "operate machinery",
             "health problems",
         ]
-
-   warning_matches = sum(
+warning_matches = sum(
             normalize_text(keyword) in label_normalized
             for keyword in warning_keywords
         )
