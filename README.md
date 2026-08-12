@@ -28,7 +28,7 @@ The application allows a user to:
 
 1. The user enters application information.
 2. The user uploads a PNG, JPG, or JPEG label image.
-3. EasyOCR extracts text from the uploaded image.
+3. Tesseract OCR extracts text from the uploaded image.
 4. The extracted text is normalized for comparison.
 5. The application compares the expected brand name with the label text.
 6. The application extracts and compares the ABV percentage.
