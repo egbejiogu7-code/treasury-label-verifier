@@ -20,7 +20,7 @@ The application allows a user to:
 
 - Python
 - Streamlit
-- EasyOCR
+- Tesseract OCR
 - Pillow
 - NumPy
 
